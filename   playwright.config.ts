@@ -14,15 +14,13 @@ export default defineConfig({
             ['junit', { outputFile: 'test-results/junit.xml' }],
             ['html', { outputFolder: 'playwright-report', open: 'never' }]
         ]
-        : [['list']]
+        : [['list']],
 
     use: {
         headless: true,
         viewport: { width: 1366, height: 768 },
         actionTimeout: 15_000,
         navigationTimeout: 45_000,
-
-        // These three are the “DevOps sanity savers”
         trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
         screenshot: 'only-on-failure',
         video: process.env.CI ? 'retain-on-failure' : 'off'
