@@ -1,0 +1,52 @@
+trigger: none
+
+schedules:
+  - cron: "0 6 * * 1-5"   # 06:00 UTC Mon-Fri (adjust as needed)
+    displayName: Weekday morning run
+    branches:
+      include:
+        - main
+    always: true
+
+pool:
+  vmImage: "ubuntu-latest"
+
+steps:
+  - checkout: self
+    clean: true
+
+  - task: NodeTool@0
+    inputs:
+      versionSpec: "20.x"
+    displayName: "Use Node.js 20"
+
+  - script: |
+      npm ci
+    displayName: "Install npm dependencies"
+
+  - script: |
+      npx playwright install --with-deps
+    displayName: "Install Playwright browsers"
+
+  - script: |
+      mkdir -p test-results
+      npm run test:ci
+    displayName: "Run tests"
+    env:
+      CI: "true"
+
+  - task: PublishTestResults@2
+    displayName: "Publish test results (JUnit)"
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: "JUnit"
+      testResultsFiles: "test-results/junit.xml"
+      failTaskOnFailedTests: true
+      testRunTitle: "Cookie consent smoke"
+
+  - task: PublishPipelineArtifact@1
+    displayName: "Publish Playwright artifacts"
+    condition: succeededOrFailed()
+    inputs:
+      targetPath: "."
+      artifact: "run-artifacts"
