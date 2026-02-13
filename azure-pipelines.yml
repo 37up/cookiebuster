@@ -51,9 +51,29 @@ steps:
       targetPath: "test-results"
       artifact: "test-results"
 
+  - bash: |
+      if [ -d "playwright-report" ]; then
+        echo "playwright-report exists"
+      else
+        echo "playwright-report does not exist; skipping publish"
+        exit 0
+      fi
+    displayName: "Check Playwright report folder"
+    condition: succeededOrFailed()
+
   - task: PublishPipelineArtifact@1
     displayName: "Publish Playwright report"
     condition: succeededOrFailed()
     inputs:
       targetPath: "playwright-report"
       artifact: "playwright-report"
+
+  - script: |
+      echo "Listing workspace:"
+      ls -la
+      echo "Listing test-results:"
+      ls -la test-results || true
+      echo "Listing playwright-report:"
+      ls -la playwright-report || true
+    displayName: "Debug: list output folders"
+    condition: succeededOrFailed()
