@@ -11,9 +11,10 @@ export default defineConfig({
     reporter: process.env.CI
         ? [
             ['line'],
-            ['junit', { outputFile: 'test-results/junit.xml' }]
+            ['junit', { outputFile: 'test-results/junit.xml' }],
+            ['html', { outputFolder: 'playwright-report', open: 'never' }]
         ]
-        : [['list']],
+        : [['list']]
 
     use: {
         headless: true,
