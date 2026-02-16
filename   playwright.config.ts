@@ -8,13 +8,11 @@ export default defineConfig({
     retries: process.env.CI ? 1 : 0,
     workers: process.env.CI ? 2 : undefined,
 
-    reporter: process.env.CI
-        ? [
-            ['line'],
-            ['junit', { outputFile: 'test-results/junit.xml' }],
-            ['html', { outputFolder: 'playwright-report', open: 'never' }]
-        ]
-        : [['list']],
+    reporter: [
+        ['line'],
+        ['junit', { outputFile: 'test-results/junit.xml' }],
+        ['html', { outputFolder: 'playwright-report', open: process.env.CI ? 'never' : 'on-failure' }]
+    ],
 
     use: {
         headless: true,
