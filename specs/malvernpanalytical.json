@@ -2,12 +2,21 @@
   "name": "malvernpanalytical",
   "url": "https://www.malvernpanalytical.com/",
   "essentialAllowed": [
-    "^__cf",
+    "^Optanon",
+    "^AWSALB$",
+    "^AWSALBCORS$",
+    "^_cf",
     "^ARRAffinity",
     "^ai_session",
-    "^ai_user"
+    "^ai_user",
+    "^mySessionCookie$",
+    "^mpUserData$"
   ],
   "forbiddenPreConsent": [
+    "^Demandbase$",
+    "^_uet",
+    "^MUID$",
+    "^MR$",
     "^_ga",
     "^_gid",
     "^_gcl",
