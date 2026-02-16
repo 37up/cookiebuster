@@ -1,67 +1,43 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
+import fs from 'fs';
 
 type SiteSpec = {
     name: string;
     url: string;
-    essentialAllowList: (string | RegExp)[];
-    forbiddenPreConsent: (string | RegExp)[];
+    essentialAllowed: string[];
+    forbiddenPreConsent: string[];
 };
 
-const sites: SiteSpec[] = [
-    {
-        name: 'malvernpanalytical',
-        url: 'https://www.malvernpanalytical.com/',
-        essentialAllowList: [
-            /^__cf/,
-            /^ARRAffinity/,
-            /^ai_session/,
-            /^ai_user/
-            // add your known essentials here
-        ],
-        forbiddenPreConsent: [
-            /^_ga/,
-            /^_gid/,
-            /^_gcl/,
-            /^_fbp/
-            // add known non-essential patterns here
-        ]
-    },
-    {
-        name: 'micromeritics',
-        url: 'https://www.micromeritics.com/',
-        essentialAllowList: [
-            /^__cf/,
-            /^ARRAffinity/,
-            /^ai_session/,
-            /^ai_user/
-        ],
-        forbiddenPreConsent: [
-            /^_ga/,
-            /^_gid/,
-            /^_gcl/,
-            /^_fbp/
-        ]
-    }
-];
-
-function matchesAny(name: string, list: (string | RegExp)[]) {
-    return list.some(x => typeof x === 'string' ? x === name : x.test(name));
+function matches(patterns: string[], value: string) {
+    return patterns.some(p => new RegExp(p).test(value));
 }
 
-for (const s of sites) {
-    test(`pre-consent cookies: ${s.name}`, async ({ page, context }) => {
-        await page.goto(s.url, { waitUntil: 'domcontentloaded' });
+const spec: SiteSpec = JSON.parse(
+    fs.readFileSync('./specs/malvernpanalytical.json', 'utf-8')
+);
 
-        const cookies = await context.cookies();
-        const names = cookies.map(c => c.name).sort();
+test(`pre-consent enforcement: ${spec.name}`, async ({ page, context }) => {
+    await page.goto(spec.url, { waitUntil: 'domcontentloaded' });
 
-        console.log(`COOKIE_INVENTORY ${s.name}:`, names.join(', '));
+    const cookies = await context.cookies();
+    const names = cookies.map(c => c.name);
 
-        const forbidden = names.filter(n => matchesAny(n, s.forbiddenPreConsent));
-        expect(forbidden, `Forbidden cookies pre-consent on ${s.name}: ${forbidden.join(', ')}`).toEqual([]);
+    console.log(`COOKIE INVENTORY (${spec.name}):`, names);
 
-        const nonEssential = names.filter(n => !matchesAny(n, s.essentialAllowList));
-        // For now, log only (do not fail) until you�ve tuned the allowlist
-        console.log(`NON_ESSENTIAL_CANDIDATES ${s.name}:`, nonEssential.join(', ') || '(none)');
-    });
-}
+    // 1️⃣ Hard fail: forbidden cookies exist pre-consent
+    const forbidden = names.filter(n =>
+        matches(spec.forbiddenPreConsent, n)
+    );
+
+    expect(
+        forbidden,
+        `Forbidden cookies detected pre-consent: ${forbidden.join(', ')}`
+    ).toEqual([]);
+
+    // 2️⃣ Soft log: unexpected cookies (not yet failing)
+    const unexpected = names.filter(
+        n => !matches(spec.essentialAllowed, n)
+    );
+
+    console.log(`Unexpected pre-consent cookies:`, unexpected);
+});

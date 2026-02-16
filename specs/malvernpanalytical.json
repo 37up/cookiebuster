@@ -1,0 +1,18 @@
+{
+  "name": "malvernpanalytical",
+  "url": "https://www.malvernpanalytical.com/",
+  "essentialAllowed": [
+    "^__cf",
+    "^ARRAffinity",
+    "^ai_session",
+    "^ai_user"
+  ],
+  "forbiddenPreConsent": [
+    "^_ga",
+    "^_gid",
+    "^_gcl",
+    "^_fbp",
+    "^_hj",
+    "^_tt_"
+  ]
+}
