@@ -19,6 +19,8 @@ const spec: SiteSpec = JSON.parse(
 test(`pre-consent enforcement: ${spec.name}`, async ({ page, context }) => {
     await page.goto(spec.url, { waitUntil: 'domcontentloaded' });
 
+    await page.waitForTimeout(2000);
+
     const cookies = await context.cookies();
     const names = cookies.map(c => c.name);
 
@@ -38,6 +40,12 @@ test(`pre-consent enforcement: ${spec.name}`, async ({ page, context }) => {
     const unexpected = names.filter(
         n => !matches(spec.essentialAllowed, n)
     );
+
+    expect(
+        unexpected,
+        `Unexpected cookies detected pre-consent: ${unexpected.join(', ')}`
+    ).toEqual([]);
+
 
     console.log(`Unexpected pre-consent cookies:`, unexpected);
 });
